@@ -59,7 +59,11 @@ var (
 )
 
 func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
-	nextPos := (currentPosition + diceRoll) % BoardSpaces
+	nextPos := (currentPosition + diceRoll)
+	if nextPos > BoardSpaces-1 { // Passed Go, but did not land on Go
+		GoVisitors = append(GoVisitors, playerID)
+	}
+	nextPos %= BoardSpaces
 
 	propType := BoardSpaceTypes[nextPos]
 
