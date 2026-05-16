@@ -9,13 +9,18 @@ import (
 
 );
 
+
 func main() {
-	fmt.Println("monopoly-web")
+	fmt.Println("monopoly-web backend")
 
-	healthHandler:= func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, "Status: healthy\n")
-	}
-
+	// register routes
 	http.HandleFunc("/health", healthHandler)
+
+
+	// listen and serve
 	log.Fatal(http.ListenAndServe(":8080",nil))
+}
+
+func healthHandler(w http.ResponseWriter, req *http.Request) {
+		io.WriteString(w, "Status: healthy\n")
 }
