@@ -10,6 +10,11 @@
       version = "0.1";
       system = "x86_64-linux";
       pkgs = import nixpkgs {inherit system;};
+
+      go-watch = pkgs.writeScriptBin "go-watch" ''
+        #!${pkgs.stdenv.shell}
+        find . -name "*.go" | ${pkgs.entr}/bin/entr -r ${pkgs.nix}/bin/nix run
+      '';
     in
     {
       packages.${system}.default = pkgs.buildGoModule {
@@ -38,7 +43,16 @@
             gopls
             gotools
             go-tools
+
+            git
+            entr
+            curl
+            go-watch
           ];
+          shellHook = ''
+            echo "Welcome to monopoly-web backend."
+            echo "Run 'go-watch' to hot reload the go server"
+          '';
         };
       };
     };

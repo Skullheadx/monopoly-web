@@ -10,12 +10,12 @@ import (
 );
 
 func main() {
-	fmt.Println("ur mom")
+	fmt.Println("monopoly-web")
 
-	helloHandler:= func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, "Hello ur mom!\n")
+	healthHandler:= func(w http.ResponseWriter, req *http.Request) {
+		io.WriteString(w, "Status: healthy\n")
 	}
 
-	http.HandleFunc("/hello", helloHandler)
+	http.HandleFunc("/health", healthHandler)
 	log.Fatal(http.ListenAndServe(":8080",nil))
 }
