@@ -5,14 +5,13 @@ import (
 	"io"
 	"log"
 	"monopoly-web/game"
-	"monopoly-web/types"
 	"net/http"
 )
 
 func main() {
 	fmt.Println("monopoly-web backend")
 
-	game.Users[0] = types.User{UUID: "abc", Money: 100}
+	game.Users[0] = game.User{UUID: "abc", Money: 100}
 	fmt.Println(game.Users)
 
 	// register routes
