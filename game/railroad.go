@@ -11,7 +11,7 @@ func numRailroadOwned(playerID int32) int32 {
 	return ownedCount
 }
 
-func processOwnedRailroad() {
+func ProcessOwnedRailroad() {
 	for _, oRV := range OwnedRailroadVisitors {
 		visitorID := oRV.visitorID
 		ownerID := oRV.ownerID

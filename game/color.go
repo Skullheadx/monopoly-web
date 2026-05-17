@@ -13,7 +13,7 @@ func HasColorMonopoly(playerID int32, targetGroup ColorGroup) bool {
 	return ownedCount == ColorGroupSizes[targetGroup]
 }
 
-func processOwnedColors() {
+func ProcessOwnedColors() {
 	for _, oCV := range OwnedColorVisitors {
 		visitorID := oCV.visitorID
 		ownerID := oCV.ownerID

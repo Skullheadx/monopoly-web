@@ -211,7 +211,6 @@ func init() {
 			SpaceToRespProperty[spaceID] = colorIndex
 			OwnableToRespProperty[ownableIndex] = colorIndex
 			RespPropertyToOwnable[colorIndex] = ownableIndex
-			colorIndex++
 
 			if ColorProperties[colorIndex].Name == "St. Charles Place" {
 				StCharlesPlaceSpaceID = spaceID
@@ -219,14 +218,15 @@ func init() {
 				BoardwalkSpaceID = spaceID
 			}
 
+			colorIndex++
 		case TypeRailroad:
 			SpaceToRespProperty[spaceID] = railroadIndex
 			OwnableToRespProperty[ownableIndex] = railroadIndex
 			RespPropertyToOwnable[railroadIndex] = ownableIndex
-			railroadIndex++
 			if ColorProperties[colorIndex].Name == "Reading Railroad" {
 				ReadingRailroadSpaceID = spaceID
 			}
+			railroadIndex++
 		case TypeUtility:
 			SpaceToRespProperty[spaceID] = utilityIndex
 			OwnableToRespProperty[ownableIndex] = utilityIndex
@@ -282,6 +282,13 @@ var (
 	ParkingVisitors         []int32
 	PoliceVisitors          []int32
 )
+
+func ProcessMovement() {
+	dist := MoveQueue[0]
+	MoveQueue = MoveQueue[1:]
+	player := Users[TurnPlayerID]
+	AdvancePlayer(TurnPlayerID, player.CurrentSpaceID, dist)
+}
 
 func CalculateNextPos(currentPosition int32, distance int32) int32 {
 	nextPos := (currentPosition + distance)

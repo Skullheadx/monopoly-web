@@ -11,7 +11,7 @@ func numUtilities(playerID int32) int32 {
 	return ownedCount
 }
 
-func processOwnedUtility() {
+func ProcessOwnedUtility() {
 	for _, oUV := range OwnedUtilityVisitors {
 		visitorID := oUV.visitorID
 		ownerID := oUV.ownerID

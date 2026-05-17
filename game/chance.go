@@ -27,7 +27,7 @@ func getPlayerMoveDistance(start int32, dest int32) int32 {
 	return distance
 }
 
-func processChance() {
+func ProcessChance() {
 	for _, visitorID := range ChanceVisitors {
 		card := RandSrc.IntN(len(ChanceCards))
 
@@ -64,13 +64,13 @@ func processChance() {
 			}
 
 		case 4:
-			// TODO
+		// TODO: GO TO JAIL
 		case 5:
 			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, ReadingRailroadSpaceID))
 		case 6:
 			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, GoSpaceID))
 		case 7:
-			// TODO
+		// TODO: GET OUT OF JAIL FREE
 		case 8:
 			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, BoardwalkSpaceID))
 		case 9:
