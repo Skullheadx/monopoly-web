@@ -50,35 +50,36 @@ type PropertyStatic struct {
 	Price int32
 }
 
-type OwnableProperty struct {
+type ColorProperty struct {
 	Name    string
 	Price   int32
 	GroupID int32
+	Houses  int32
 }
 
-var ColorProperties = []OwnableProperty{
-	{GroupID: 0, Name: "Mediterranean Avenue", Price: 60},
-	{GroupID: 0, Name: "Baltic Avenue", Price: 60},
-	{GroupID: 1, Name: "Oriental Avenue", Price: 100},
-	{GroupID: 1, Name: "Vermont Avenue", Price: 100},
-	{GroupID: 1, Name: "Connecticut Avenue", Price: 120},
-	{GroupID: 2, Name: "St. Charles Place", Price: 140},
-	{GroupID: 2, Name: "States Avenue", Price: 140},
-	{GroupID: 2, Name: "Virginia Avenue", Price: 160},
-	{GroupID: 3, Name: "St. James Place", Price: 180},
-	{GroupID: 3, Name: "Tennessee Avenue", Price: 180},
-	{GroupID: 3, Name: "New York Avenue", Price: 200},
-	{GroupID: 4, Name: "Kentucky Avenue", Price: 220},
-	{GroupID: 4, Name: "Indiana Avenue", Price: 220},
-	{GroupID: 4, Name: "Illinois Avenue", Price: 240},
-	{GroupID: 5, Name: "Atlantic Avenue", Price: 260},
-	{GroupID: 5, Name: "Ventnor Avenue", Price: 260},
-	{GroupID: 5, Name: "Marvin Gardens", Price: 280},
-	{GroupID: 6, Name: "Pacific Avenue", Price: 300},
-	{GroupID: 6, Name: "North Carolina Avenue", Price: 300},
-	{GroupID: 6, Name: "Pennsylvania Avenue", Price: 320},
-	{GroupID: 7, Name: "Park Place", Price: 350},
-	{GroupID: 7, Name: "Boardwalk", Price: 400},
+var ColorProperties = []ColorProperty{
+	{GroupID: 0, Houses: 0, Name: "Mediterranean Avenue", Price: 60},
+	{GroupID: 0, Houses: 0, Name: "Baltic Avenue", Price: 60},
+	{GroupID: 1, Houses: 0, Name: "Oriental Avenue", Price: 100},
+	{GroupID: 1, Houses: 0, Name: "Vermont Avenue", Price: 100},
+	{GroupID: 1, Houses: 0, Name: "Connecticut Avenue", Price: 120},
+	{GroupID: 2, Houses: 0, Name: "St. Charles Place", Price: 140},
+	{GroupID: 2, Houses: 0, Name: "States Avenue", Price: 140},
+	{GroupID: 2, Houses: 0, Name: "Virginia Avenue", Price: 160},
+	{GroupID: 3, Houses: 0, Name: "St. James Place", Price: 180},
+	{GroupID: 3, Houses: 0, Name: "Tennessee Avenue", Price: 180},
+	{GroupID: 3, Houses: 0, Name: "New York Avenue", Price: 200},
+	{GroupID: 4, Houses: 0, Name: "Kentucky Avenue", Price: 220},
+	{GroupID: 4, Houses: 0, Name: "Indiana Avenue", Price: 220},
+	{GroupID: 4, Houses: 0, Name: "Illinois Avenue", Price: 240},
+	{GroupID: 5, Houses: 0, Name: "Atlantic Avenue", Price: 260},
+	{GroupID: 5, Houses: 0, Name: "Ventnor Avenue", Price: 260},
+	{GroupID: 5, Houses: 0, Name: "Marvin Gardens", Price: 280},
+	{GroupID: 6, Houses: 0, Name: "Pacific Avenue", Price: 300},
+	{GroupID: 6, Houses: 0, Name: "North Carolina Avenue", Price: 300},
+	{GroupID: 6, Houses: 0, Name: "Pennsylvania Avenue", Price: 320},
+	{GroupID: 7, Houses: 0, Name: "Park Place", Price: 350},
+	{GroupID: 7, Houses: 0, Name: "Boardwalk", Price: 400},
 }
 
 var ColorPropertyRents = [][6]int32{
@@ -128,29 +129,41 @@ var TaxSpaces = []TaxSpace{
 	{Name: "Luxury Tax", Amount: 100},
 }
 
-var PropertyOwners = []int32{}
+var PropertyOwned = []int32{} // playerID
 
-var SpaceToOwnableProperty = make(map[int]int)
-var SpaceToTaxSpace = make(map[int]int)
+var SpaceToRespProperty = make(map[int32]int32)
+var SpaceToOwnableProperty = make(map[int32]int32)
+var SpaceToTaxSpace = make(map[int32]int32)
 
 func init() {
-	colorIndex := 0
-	railroadIndex := 0
-	utilityIndex := 0
-	taxIndex := 0
+	var (
+		colorIndex    int32 = 0
+		railroadIndex int32 = 0
+		utilityIndex  int32 = 0
+		taxIndex      int32 = 0
+		ownableIndex  int32 = 0
+	)
+
 	for i, propertyType := range BoardSpaceTypes {
+		spaceID := int32(i)
+
+		if propertyType == TypeColor || propertyType == TypeRailroad || propertyType == TypeUtility {
+			SpaceToOwnableProperty[spaceID] = ownableIndex
+			PropertyOwned = append(PropertyOwned, -1)
+		}
+
 		switch propertyType {
 		case TypeColor:
-			SpaceToOwnableProperty[i] = colorIndex
+			SpaceToRespProperty[spaceID] = colorIndex
 			colorIndex++
 		case TypeRailroad:
-			SpaceToOwnableProperty[i] = railroadIndex
+			SpaceToRespProperty[spaceID] = railroadIndex
 			railroadIndex++
 		case TypeUtility:
-			SpaceToOwnableProperty[i] = utilityIndex
+			SpaceToRespProperty[spaceID] = utilityIndex
 			utilityIndex++
 		case TypeTax:
-			SpaceToTaxSpace[i] = taxIndex
+			SpaceToTaxSpace[spaceID] = taxIndex
 			taxIndex++
 		}
 
@@ -158,22 +171,42 @@ func init() {
 
 }
 
-type ColorVisitor struct {
-	playerID int32
-	spaceID  int32
+type OwnedColorVisitor struct {
+	visitorID int32
+	ownerID   int32
+	colorID   int32
+}
+
+type OwnedRailroadVisitor struct {
+	visitorID  int32
+	ownerID    int32
+	railroadID int32
+}
+
+type OwnedUtilityVisitor struct {
+	visitorID int32
+	ownerID   int32
+	utilityID int32
+	diceRoll  int32
+}
+
+type UnownedPropertyVisitor struct {
+	visitorID  int32
+	propertyID int32
 }
 
 var (
-	GoVisitors       []int32
-	ColorVisitors    []ColorVisitor
-	ChestVisitors    []int32
-	TaxVisitors      []int32
-	RailroadVisitors []int32
-	ChanceVisitors   []int32
-	JailVisitors     []int32
-	UtilityVisitors  []int32
-	ParkingVisitors  []int32
-	PoliceVisitors   []int32
+	GoVisitors              []int32
+	OwnedColorVisitors      []OwnedColorVisitor
+	UnownedPropertyVisitors []UnownedPropertyVisitor
+	ChestVisitors           []int32
+	TaxVisitors             []int32
+	OwnedRailroadVisitors   []OwnedRailroadVisitor
+	ChanceVisitors          []int32
+	JailVisitors            []int32
+	OwnedUtilityVisitors    []OwnedUtilityVisitor
+	ParkingVisitors         []int32
+	PoliceVisitors          []int32
 )
 
 func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
@@ -189,19 +222,43 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 	case TypeGo:
 		GoVisitors = append(GoVisitors, playerID)
 	case TypeColor:
-		ColorVisitors = append(ColorVisitors, ColorVisitor{playerID: playerID, spaceID: nextPos})
+		propIndex := SpaceToOwnableProperty[nextPos]
+		if PropertyOwned[propIndex] != -1 { // property owned?
+			ownerID := PropertyOwned[propIndex]
+			if ownerID != playerID { // not by you
+				OwnedColorVisitors = append(OwnedColorVisitors, OwnedColorVisitor{visitorID: playerID, ownerID: ownerID, colorID: SpaceToRespProperty[nextPos]})
+			}
+		} else {
+			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+		}
 	case TypeChest:
 		ChestVisitors = append(ChestVisitors, playerID)
 	case TypeTax:
 		TaxVisitors = append(TaxVisitors, playerID)
 	case TypeRailroad:
-		RailroadVisitors = append(RailroadVisitors, playerID)
+		propIndex := SpaceToOwnableProperty[nextPos]
+		if PropertyOwned[propIndex] != -1 { // property owned?
+			ownerID := PropertyOwned[propIndex]
+			if ownerID != playerID { // not by you
+				OwnedRailroadVisitors = append(OwnedRailroadVisitors, OwnedRailroadVisitor{visitorID: playerID, ownerID: ownerID, railroadID: SpaceToRespProperty[nextPos]})
+			}
+		} else {
+			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+		}
 	case TypeChance:
 		ChanceVisitors = append(ChanceVisitors, playerID)
 	case TypeJail:
 		JailVisitors = append(JailVisitors, playerID)
 	case TypeUtility:
-		UtilityVisitors = append(UtilityVisitors, playerID)
+		propIndex := SpaceToOwnableProperty[nextPos]
+		if PropertyOwned[propIndex] != -1 { // property owned?
+			ownerID := PropertyOwned[propIndex]
+			if ownerID != playerID { // not by you
+				OwnedUtilityVisitors = append(OwnedUtilityVisitors, OwnedUtilityVisitor{visitorID: playerID, ownerID: ownerID, utilityID: SpaceToRespProperty[nextPos], diceRoll: diceRoll})
+			}
+		} else {
+			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+		}
 	case TypeParking:
 		ParkingVisitors = append(ParkingVisitors, playerID)
 	case TypePolice:
