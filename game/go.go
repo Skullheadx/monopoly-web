@@ -1,7 +1,9 @@
 package game
 
+const GO_SALARY int32 = 200
+
 func ProcessGo() {
 	for _, playerID := range GoVisitors {
-		Users[playerID].Money += 200
+		AdjustPlayerMoney(playerID, GO_SALARY)
 	}
 }
