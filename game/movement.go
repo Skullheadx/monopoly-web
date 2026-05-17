@@ -161,7 +161,17 @@ var TaxSpaces = []TaxSpace{
 	{Name: "Luxury Tax", Amount: 100},
 }
 
-var PropertyOwners = []int32{} // playerID
+var PropertyOwners = []int32{}    // playerID
+var PropertyMortgages = []int32{} // mortgaged ownablePropertyIDs
+
+func IsMortgaged(ownablePropertyID int32) bool {
+	for _, oPID := range PropertyMortgages {
+		if oPID == ownablePropertyID {
+			return true
+		}
+	}
+	return false
+}
 
 var SpaceToRespProperty = make(map[int32]int32)
 var SpaceToOwnableProperty = make(map[int32]int32)
@@ -228,15 +238,15 @@ type UnownedPropertyVisitor struct {
 }
 
 var (
-	GoVisitors              []int32
-	OwnedColorVisitors      []OwnedColorVisitor
 	UnownedPropertyVisitors []UnownedPropertyVisitor
-	ChestVisitors           []int32
-	TaxVisitors             []int32
+	OwnedColorVisitors      []OwnedColorVisitor
 	OwnedRailroadVisitors   []OwnedRailroadVisitor
-	ChanceVisitors          []int32
-	JailVisitors            []int32
 	OwnedUtilityVisitors    []OwnedUtilityVisitor
+	GoVisitors              []int32
+	TaxVisitors             []int32
+	ChanceVisitors          []int32
+	ChestVisitors           []int32
+	JailVisitors            []int32
 	ParkingVisitors         []int32
 	PoliceVisitors          []int32
 )
@@ -257,7 +267,7 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
 			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID { // not by you
+			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
 				OwnedColorVisitors = append(OwnedColorVisitors, OwnedColorVisitor{visitorID: playerID, ownerID: ownerID, colorID: SpaceToRespProperty[nextPos]})
 			}
 		} else {
@@ -271,7 +281,7 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
 			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID { // not by you
+			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
 				OwnedRailroadVisitors = append(OwnedRailroadVisitors, OwnedRailroadVisitor{visitorID: playerID, ownerID: ownerID, railroadID: SpaceToRespProperty[nextPos]})
 			}
 		} else {
@@ -285,7 +295,7 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
 			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID { // not by you
+			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
 				OwnedUtilityVisitors = append(OwnedUtilityVisitors, OwnedUtilityVisitor{visitorID: playerID, ownerID: ownerID, utilityID: SpaceToRespProperty[nextPos], diceRoll: diceRoll})
 			}
 		} else {
