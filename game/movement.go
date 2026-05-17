@@ -187,6 +187,7 @@ var StCharlesPlaceSpaceID int32 = 0
 var GoSpaceID int32 = 0
 var ReadingRailroadSpaceID int32 = 0
 var BoardwalkSpaceID int32 = 0
+var IllinoisAvenueSpaceID int32 = 0
 
 func init() {
 	var (
@@ -212,10 +213,13 @@ func init() {
 			OwnableToRespProperty[ownableIndex] = colorIndex
 			RespPropertyToOwnable[colorIndex] = ownableIndex
 
-			if ColorProperties[colorIndex].Name == "St. Charles Place" {
+			switch ColorProperties[colorIndex].Name {
+			case "St. Charles Place":
 				StCharlesPlaceSpaceID = spaceID
-			} else if ColorProperties[colorIndex].Name == "Boardwalk" {
+			case "Boardwalk":
 				BoardwalkSpaceID = spaceID
+			case "Illinois Avenue":
+				IllinoisAvenueSpaceID = spaceID
 			}
 
 			colorIndex++

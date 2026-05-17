@@ -70,7 +70,7 @@ func RollDice() {
 		ProcessOwnedRailroad()
 
 		ProcessChance()
-		// ProcessChest()
+		ProcessChest()
 
 		// ProcessPolice()
 		// ProcessJail()

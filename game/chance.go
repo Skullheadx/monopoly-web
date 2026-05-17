@@ -19,7 +19,7 @@ var ChanceCards = [...]string{
 	15: "Bank pays you dividend of $50.",
 }
 
-func getPlayerMoveDistance(start int32, dest int32) int32 {
+func GetPlayerMoveDistance(start int32, dest int32) int32 {
 	distance := dest - start
 	if distance < 0 {
 		distance += int32(len(BoardSpaces))
@@ -35,14 +35,14 @@ func ProcessChance() {
 
 		switch card {
 		case 0:
-			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, StCharlesPlaceSpaceID))
+			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, StCharlesPlaceSpaceID))
 		case 1, 2:
 			for i := range BoardSpaces {
 				offset := int32(i)
 				next_pos := currentPos + offset
 				propertyType := BoardSpaces[next_pos]
 				if propertyType == TypeRailroad {
-					distance := getPlayerMoveDistance(currentPos, next_pos)
+					distance := GetPlayerMoveDistance(currentPos, next_pos)
 					if PropertyOwners[SpaceToOwnableProperty[CalculateNextPos(currentPos, distance)]] != visitorID {
 						ModifierRailroadRentMultiplier = 2
 					}
@@ -55,7 +55,7 @@ func ProcessChance() {
 				next_pos := currentPos + offset
 				propertyType := BoardSpaces[next_pos]
 				if propertyType == TypeUtility {
-					distance := getPlayerMoveDistance(currentPos, next_pos)
+					distance := GetPlayerMoveDistance(currentPos, next_pos)
 					if PropertyOwners[SpaceToOwnableProperty[CalculateNextPos(currentPos, distance)]] != visitorID {
 						ModifierUtilityForceRentMultiplier = true
 					}
@@ -66,13 +66,13 @@ func ProcessChance() {
 		case 4:
 		// TODO: GO TO JAIL
 		case 5:
-			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, ReadingRailroadSpaceID))
+			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, ReadingRailroadSpaceID))
 		case 6:
-			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, GoSpaceID))
+			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, GoSpaceID))
 		case 7:
 		// TODO: GET OUT OF JAIL FREE
 		case 8:
-			MoveQueue = append(MoveQueue, getPlayerMoveDistance(currentPos, BoardwalkSpaceID))
+			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, BoardwalkSpaceID))
 		case 9:
 			AdjustPlayerMoney(visitorID, 150)
 		case 10:
@@ -80,6 +80,8 @@ func ProcessChance() {
 		case 11:
 			AdjustPlayerMoney(visitorID, -15)
 		case 12:
+			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, IllinoisAvenueSpaceID))
+		case 13:
 			var repairCost int32 = 0
 			for propID, ownerID := range PropertyOwners {
 				if ownerID == visitorID && OwnablePropertyType[propID] == TypeColor {
