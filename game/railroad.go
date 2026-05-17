@@ -2,8 +2,8 @@ package game
 
 func numRailroadOwned(playerID int32) int32 {
 	var ownedCount int32 = 0
-	for railroadID, ownerID := range PropertyOwners {
-		if ownerID == playerID && OwnablePropertyType[RespPropertyToOwnable[int32(railroadID)]] == TypeRailroad {
+	for propID, ownerID := range PropertyOwners {
+		if ownerID == playerID && OwnablePropertyType[int32(propID)] == TypeRailroad {
 			ownedCount++
 		}
 	}
@@ -21,5 +21,7 @@ func processOwnedRailroad() {
 
 		AdjustPlayerMoney(visitorID, -rent)
 		AdjustPlayerMoney(ownerID, rent)
+		// reset railroad rent mod after payment
+		ModifierRailroadRentMultiplier = 1
 	}
 }

@@ -1,9 +1,11 @@
 package game
 
+const MAX_PROP_HOUSES = 4
+
 func HasColorMonopoly(playerID int32, targetGroup ColorGroup) bool {
 	var ownedCount int32
-	for colorID, ownerID := range PropertyOwners {
-		if ownerID == playerID && OwnablePropertyType[RespPropertyToOwnable[int32(colorID)]] == TypeColor && ColorProperties[colorID].GroupID == targetGroup {
+	for propID, ownerID := range PropertyOwners {
+		if ownerID == playerID && OwnablePropertyType[int32(propID)] == TypeColor && ColorProperties[OwnableToRespProperty[int32(propID)]].GroupID == targetGroup {
 			ownedCount++
 		}
 	}

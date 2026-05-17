@@ -1,7 +1,18 @@
 package game
 
+import (
+	"math/rand/v2"
+)
+
+var RandSeed = rand.NewPCG(20, 26)
+var RandSrc = rand.New(RandSeed)
+
 var Users []User
 var DebtEvents []int32
+var MoveQueue []int32
+
+var ModifierRailroadRentMultiplier int32 = 1
+var ModifierUtilityForceRentMultiplier bool = false
 
 func IsInDebt(playerID int32) (bool, int32) {
 	for i, pID := range DebtEvents {

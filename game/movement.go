@@ -183,6 +183,11 @@ var SpaceToTaxSpace = make(map[int32]int32)
 var OwnableToRespProperty = make(map[int32]int32)
 var RespPropertyToOwnable = make(map[int32]int32)
 
+var StCharlesPlaceSpaceID int32 = 0
+var GoSpaceID int32 = 0
+var ReadingRailroadSpaceID int32 = 0
+var BoardwalkSpaceID int32 = 0
+
 func init() {
 	var (
 		colorIndex    int32 = 0
@@ -207,11 +212,21 @@ func init() {
 			OwnableToRespProperty[ownableIndex] = colorIndex
 			RespPropertyToOwnable[colorIndex] = ownableIndex
 			colorIndex++
+
+			if ColorProperties[colorIndex].Name == "St. Charles Place" {
+				StCharlesPlaceSpaceID = spaceID
+			} else if ColorProperties[colorIndex].Name == "Boardwalk" {
+				BoardwalkSpaceID = spaceID
+			}
+
 		case TypeRailroad:
 			SpaceToRespProperty[spaceID] = railroadIndex
 			OwnableToRespProperty[ownableIndex] = railroadIndex
 			RespPropertyToOwnable[railroadIndex] = ownableIndex
 			railroadIndex++
+			if ColorProperties[colorIndex].Name == "Reading Railroad" {
+				ReadingRailroadSpaceID = spaceID
+			}
 		case TypeUtility:
 			SpaceToRespProperty[spaceID] = utilityIndex
 			OwnableToRespProperty[ownableIndex] = utilityIndex
@@ -220,6 +235,8 @@ func init() {
 		case TypeTax:
 			SpaceToTaxSpace[spaceID] = taxIndex
 			taxIndex++
+		case TypeGo:
+			GoSpaceID = spaceID
 		}
 
 		ownableIndex++
@@ -266,18 +283,40 @@ var (
 	PoliceVisitors          []int32
 )
 
-func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
-	nextPos := (currentPosition + diceRoll)
-	if nextPos > int32(len(BoardSpaces))-1 { // Passed Go, but did not land on Go
-		GoVisitors = append(GoVisitors, playerID)
-	}
+func CalculateNextPos(currentPosition int32, distance int32) int32 {
+	nextPos := (currentPosition + distance)
 	nextPos %= int32(len(BoardSpaces))
+
+	return nextPos
+}
+
+func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
+	nextPos := CalculateNextPos(currentPosition, diceRoll)
+
+	numGoPasses := (currentPosition + diceRoll) / (int32(len(BoardSpaces)) - 1)
+	if numGoPasses > 0 {
+		for _ = range numGoPasses {
+			GoVisitors = append(GoVisitors, playerID)
+		}
+	}
 
 	propType := BoardSpaces[nextPos]
 
 	switch propType {
 	case TypeGo:
 		GoVisitors = append(GoVisitors, playerID)
+	case TypeChest:
+		ChestVisitors = append(ChestVisitors, playerID)
+	case TypeChance:
+		ChanceVisitors = append(ChanceVisitors, playerID)
+	case TypeTax:
+		TaxVisitors = append(TaxVisitors, playerID)
+	// case TypeParking: // nothing ever happens
+	// 	ParkingVisitors = append(ParkingVisitors, playerID)
+	case TypePolice:
+		PoliceVisitors = append(PoliceVisitors, playerID)
+	case TypeJail:
+		JailVisitors = append(JailVisitors, playerID)
 	case TypeColor:
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
@@ -288,10 +327,6 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		} else {
 			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
 		}
-	case TypeChest:
-		ChestVisitors = append(ChestVisitors, playerID)
-	case TypeTax:
-		TaxVisitors = append(TaxVisitors, playerID)
 	case TypeRailroad:
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
@@ -302,10 +337,6 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		} else {
 			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
 		}
-	case TypeChance:
-		ChanceVisitors = append(ChanceVisitors, playerID)
-	case TypeJail:
-		JailVisitors = append(JailVisitors, playerID)
 	case TypeUtility:
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?
@@ -316,9 +347,5 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		} else {
 			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
 		}
-	case TypeParking:
-		ParkingVisitors = append(ParkingVisitors, playerID)
-	case TypePolice:
-		PoliceVisitors = append(PoliceVisitors, playerID)
 	}
 }
