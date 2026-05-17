@@ -1,10 +1,10 @@
 package game
 
 func processOwnedColors() {
-	for _, ocv := range OwnedColorVisitors {
-		visitorID := ocv.visitorID
-		ownerID := ocv.ownerID
-		colorID := ocv.colorID
+	for _, oCV := range OwnedColorVisitors {
+		visitorID := oCV.visitorID
+		ownerID := oCV.ownerID
+		colorID := oCV.colorID
 
 		prop := ColorProperties[colorID]
 		prices := ColorPropertyRents[colorID]
