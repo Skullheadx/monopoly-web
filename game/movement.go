@@ -50,28 +50,60 @@ type PropertyStatic struct {
 	Price int32
 }
 
-var ColorProperties = []PropertyStatic{
-	{Name: "Mediterranean Avenue", Price: 60},
-	{Name: "Baltic Avenue", Price: 60},
-	{Name: "Oriental Avenue", Price: 100},
-	{Name: "Vermont Avenue", Price: 100},
-	{Name: "Connecticut Avenue", Price: 120},
-	{Name: "St. Charles Place", Price: 140},
-	{Name: "States Avenue", Price: 160},
-	{Name: "Virginia Avenue", Price: 140},
-	{Name: "St. James Place", Price: 180},
-	{Name: "Tennessee Avenue", Price: 200},
-	{Name: "Kentucky Avenue", Price: 220},
-	{Name: "Indiana Avenue", Price: 220},
-	{Name: "Illinois Avenue", Price: 240},
-	{Name: "Atlantic Avenue", Price: 260},
-	{Name: "Ventnor Avenue", Price: 260},
-	{Name: "Marvin Gardens", Price: 280},
-	{Name: "Pacific Avenue", Price: 300},
-	{Name: "North Carolina Avenue", Price: 300},
-	{Name: "Pennsylvania Avenue", Price: 320},
-	{Name: "Park Place", Price: 350},
-	{Name: "Boardwalk", Price: 400},
+type OwnableProperty struct {
+	Name    string
+	Price   int32
+	GroupID int32
+}
+
+var ColorProperties = []OwnableProperty{
+	{GroupID: 0, Name: "Mediterranean Avenue", Price: 60},
+	{GroupID: 0, Name: "Baltic Avenue", Price: 60},
+	{GroupID: 1, Name: "Oriental Avenue", Price: 100},
+	{GroupID: 1, Name: "Vermont Avenue", Price: 100},
+	{GroupID: 1, Name: "Connecticut Avenue", Price: 120},
+	{GroupID: 2, Name: "St. Charles Place", Price: 140},
+	{GroupID: 2, Name: "States Avenue", Price: 140},
+	{GroupID: 2, Name: "Virginia Avenue", Price: 160},
+	{GroupID: 3, Name: "St. James Place", Price: 180},
+	{GroupID: 3, Name: "Tennessee Avenue", Price: 180},
+	{GroupID: 3, Name: "New York Avenue", Price: 200},
+	{GroupID: 4, Name: "Kentucky Avenue", Price: 220},
+	{GroupID: 4, Name: "Indiana Avenue", Price: 220},
+	{GroupID: 4, Name: "Illinois Avenue", Price: 240},
+	{GroupID: 5, Name: "Atlantic Avenue", Price: 260},
+	{GroupID: 5, Name: "Ventnor Avenue", Price: 260},
+	{GroupID: 5, Name: "Marvin Gardens", Price: 280},
+	{GroupID: 6, Name: "Pacific Avenue", Price: 300},
+	{GroupID: 6, Name: "North Carolina Avenue", Price: 300},
+	{GroupID: 6, Name: "Pennsylvania Avenue", Price: 320},
+	{GroupID: 7, Name: "Park Place", Price: 350},
+	{GroupID: 7, Name: "Boardwalk", Price: 400},
+}
+
+var ColorPropertyRents = [][6]int32{
+	{2, 10, 30, 90, 160, 250},
+	{4, 20, 60, 180, 320, 450},
+	{6, 30, 90, 270, 400, 550},
+	{6, 30, 90, 270, 400, 550},
+	{8, 40, 100, 300, 450, 600},
+	{10, 50, 150, 450, 625, 750},
+	{10, 50, 150, 450, 625, 750},
+	{12, 60, 180, 500, 700, 900},
+	{14, 70, 200, 550, 750, 950},
+	{14, 70, 200, 550, 750, 950},
+	{16, 80, 220, 600, 800, 1000},
+	{18, 90, 250, 700, 875, 1050},
+	{18, 90, 250, 700, 875, 1050},
+	{20, 100, 300, 750, 925, 1100},
+	{22, 110, 330, 800, 975, 1150},
+	{22, 110, 330, 800, 975, 1150},
+	{24, 120, 360, 850, 1025, 1200},
+	{26, 130, 390, 900, 1100, 1275},
+	{26, 130, 390, 900, 1100, 1275},
+	{28, 150, 450, 1000, 1200, 1400},
+	{35, 175, 500, 1100, 1300, 1500},
+	{50, 200, 600, 1400, 1700, 2000},
 }
 
 var RailroadProperties = []PropertyStatic{
