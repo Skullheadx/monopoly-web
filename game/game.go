@@ -63,7 +63,7 @@ func RollDice() {
 		ProcessMovement()
 
 		ProcessGo()
-		// ProcessTax()
+		ProcessTax()
 
 		ProcessOwnedColors()
 		ProcessOwnedUtility()
