@@ -273,6 +273,11 @@ type UnownedPropertyVisitor struct {
 	propertyID int32
 }
 
+type InJailVisitor struct {
+	visitorID int32
+	turns     int32
+}
+
 var (
 	UnownedPropertyVisitors []UnownedPropertyVisitor
 	OwnedColorVisitors      []OwnedColorVisitor
@@ -282,16 +287,46 @@ var (
 	TaxVisitors             []int32
 	ChanceVisitors          []int32
 	ChestVisitors           []int32
-	JailVisitors            []int32
+	InJailVisitors          []InJailVisitor
 	ParkingVisitors         []int32
 	PoliceVisitors          []int32
 )
 
+func AllowedToMove(playerID int32) bool {
+	for _, pID := range MoveablePlayers {
+		if playerID == pID {
+			return true
+		}
+	}
+	return false
+}
+
 func ProcessMovement() {
-	dist := MoveQueue[0]
-	MoveQueue = MoveQueue[1:]
-	player := Users[TurnPlayerID]
-	AdvancePlayer(TurnPlayerID, player.CurrentSpaceID, dist)
+	for i, playerID := range MoveablePlayers {
+		if playerID == TurnPlayerID {
+
+			// Movement
+			for {
+				// condition to stop moving
+				if len(MoveQueue) == 0 {
+					// player can no longer move
+					MoveablePlayers[i] = MoveablePlayers[len(MoveablePlayers)-1]
+					MoveablePlayers = MoveablePlayers[:len(MoveablePlayers)-1]
+					break
+				}
+
+				dist := MoveQueue[0]
+				MoveQueue = MoveQueue[1:]
+				player := Users[playerID]
+				AdvancePlayer(playerID, player.CurrentSpaceID, dist)
+
+				ProcessLanding()
+			}
+
+		}
+
+	}
+
 }
 
 func CalculateNextPos(currentPosition int32, distance int32) int32 {
@@ -306,7 +341,7 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 
 	numGoPasses := (currentPosition + diceRoll) / (int32(len(BoardSpaces)) - 1)
 	if numGoPasses > 0 {
-		for _ = range numGoPasses {
+		for range numGoPasses {
 			GoVisitors = append(GoVisitors, playerID)
 		}
 	}
@@ -324,10 +359,10 @@ func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 		TaxVisitors = append(TaxVisitors, playerID)
 	// case TypeParking: // nothing ever happens
 	// 	ParkingVisitors = append(ParkingVisitors, playerID)
-	case TypePolice:
-		PoliceVisitors = append(PoliceVisitors, playerID)
+	case TypePolice: // hardcoding to send straight to jail
+		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: playerID, turns: DEFAULT_JAIL_TURNS})
 	case TypeJail:
-		JailVisitors = append(JailVisitors, playerID)
+		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: playerID, turns: DEFAULT_JAIL_TURNS})
 	case TypeColor:
 		propIndex := SpaceToOwnableProperty[nextPos]
 		if PropertyOwners[propIndex] != -1 { // property owned?

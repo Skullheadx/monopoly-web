@@ -64,7 +64,7 @@ func ProcessChance() {
 			}
 
 		case 4:
-		// TODO: GO TO JAIL
+			InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: visitorID, turns: DEFAULT_JAIL_TURNS})
 		case 5:
 			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, ReadingRailroadSpaceID))
 		case 6:

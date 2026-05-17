@@ -9,6 +9,7 @@ var RandSrc = rand.New(RandSeed)
 
 var Users []User
 var DebtEvents []int32
+var MoveablePlayers []int32
 var MoveQueue []int32
 
 var ModifierRailroadRentMultiplier int32 = 1
@@ -18,7 +19,7 @@ var TurnPlayerID int32 = 0
 var TurnEndedSignal bool = false
 var DiceRollsRemaining int32 = 1
 var numDiceRolled int32 = 0
-var Doubles bool = false
+var RolledDoubles bool = false
 
 func ValidateCanRoll(UUID string) bool {
 	if Users[TurnPlayerID].UUID == UUID && DiceRollsRemaining > 0 {
@@ -35,6 +36,21 @@ func ValidateCanEndTurn(UUID string) bool {
 	return true
 }
 
+func ProcessLanding() {
+	ProcessGo()
+	ProcessTax()
+
+	ProcessOwnedColors()
+	ProcessOwnedUtility()
+	ProcessOwnedRailroad()
+
+	ProcessChance()
+	ProcessChest()
+	// ProcessPolice()
+
+	ProcessJail()
+}
+
 func RollDice() {
 	// Roll Dice
 	diceRoll1 := RandSrc.Int32N(6) + 1
@@ -43,45 +59,27 @@ func RollDice() {
 	numDiceRolled++
 
 	if diceRoll1 == diceRoll2 {
-		Doubles = true
+		RolledDoubles = true
 		DiceRollsRemaining++
+		RemovePlayerFromJail(TurnPlayerID)
 	}
 
 	if numDiceRolled >= 3 {
-		// TODO: GO TO JAIL
-	}
-
-	// Movement
-	for {
-		// condition to stop moving
-		if len(MoveQueue) == 0 {
-			break
-		}
-
-		// does one movement
-		// TODO: prevent movement while in JAIL
-		ProcessMovement()
-
-		ProcessGo()
-		ProcessTax()
-
-		ProcessOwnedColors()
-		ProcessOwnedUtility()
-		ProcessOwnedRailroad()
-
-		ProcessChance()
-		ProcessChest()
-
-		// ProcessPolice()
-		// ProcessJail()
+		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: TurnPlayerID, turns: DEFAULT_JAIL_TURNS})
 	}
 
 }
 
 func EndTurn() {
+	// next player's turn
 	TurnPlayerID = (TurnPlayerID + 1) % int32(len(Users))
 	TurnEndedSignal = false
+
+	// reset dice
 	DiceRollsRemaining = 1
 	numDiceRolled = 0
-	Doubles = false
+	RolledDoubles = false
+
+	// let player move next turn
+	MoveQueue = MoveQueue[:0]
 }

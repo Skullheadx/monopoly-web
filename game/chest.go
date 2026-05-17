@@ -74,7 +74,7 @@ func ProcessChest() {
 		case 12:
 			AdjustPlayerMoney(visitorID, 25)
 		case 13:
-		// TODO: GO TO JAIL
+			InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: visitorID, turns: DEFAULT_JAIL_TURNS})
 		case 14:
 			// TODO: GET OUT OF JAIL FREE
 		case 15:

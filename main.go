@@ -32,6 +32,7 @@ const UUID = "abc" // TODO: UUID in cookie
 func rollDiceHandler(w http.ResponseWriter, req *http.Request) {
 	if game.ValidateCanRoll(UUID) {
 		game.RollDice()
+		game.ProcessMovement()
 	}
 }
 
