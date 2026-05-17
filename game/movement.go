@@ -1,8 +1,6 @@
 package game
 
-const BoardSpaces = 40
-
-var BoardSpaceTypes = [BoardSpaces]PropertyType{
+var BoardSpaces = [...]PropertyType{
 	TypeGo,
 	TypeColor,
 	TypeChest,
@@ -106,7 +104,7 @@ var ColorProperties = []ColorProperty{
 	{GroupID: GroupDarkBlue, Houses: 0, Name: "Boardwalk", Price: 400},
 }
 
-var ColorPropertyRents = [][6]int32{
+var ColorPropertyRents = [][]int32{
 	{2, 10, 30, 90, 160, 250},
 	{4, 20, 60, 180, 320, 450},
 	{6, 30, 90, 270, 400, 550},
@@ -139,7 +137,9 @@ var RailroadProperties = []PropertyStatic{
 }
 
 const RailroadPrice int32 = 200
-const RailroadRent = [4]int32{25, 50, 100, 200}
+
+var RailroadRent = [...]int32{25, 50, 100, 200}
+
 const RailroadMortgageValue int32 = 100
 
 var UtilityProperties = []PropertyStatic{
@@ -148,7 +148,9 @@ var UtilityProperties = []PropertyStatic{
 }
 
 const UtilityPrice int32 = 150
-const UtilityRentMult = [2]int32{4, 10}
+
+var UtilityRentMult = [...]int32{4, 10}
+
 const UtilityMortgageValue int32 = 75
 
 type TaxSpace struct {
@@ -161,8 +163,9 @@ var TaxSpaces = []TaxSpace{
 	{Name: "Luxury Tax", Amount: 100},
 }
 
-var PropertyOwners = []int32{}    // playerID
-var PropertyMortgages = []int32{} // mortgaged ownablePropertyIDs
+var PropertyOwners = []int32{}             // playerID
+var OwnablePropertyType = []PropertyType{} // uses ownablePropertyID
+var PropertyMortgages = []int32{}          // mortgaged ownablePropertyIDs
 
 func IsMortgaged(ownablePropertyID int32) bool {
 	for _, oPID := range PropertyMortgages {
@@ -177,6 +180,9 @@ var SpaceToRespProperty = make(map[int32]int32)
 var SpaceToOwnableProperty = make(map[int32]int32)
 var SpaceToTaxSpace = make(map[int32]int32)
 
+var OwnableToRespProperty = make(map[int32]int32)
+var RespPropertyToOwnable = make(map[int32]int32)
+
 func init() {
 	var (
 		colorIndex    int32 = 0
@@ -186,28 +192,37 @@ func init() {
 		ownableIndex  int32 = 0
 	)
 
-	for i, propertyType := range BoardSpaceTypes {
+	for i, propertyType := range BoardSpaces {
 		spaceID := int32(i)
 
 		if propertyType == TypeColor || propertyType == TypeRailroad || propertyType == TypeUtility {
 			SpaceToOwnableProperty[spaceID] = ownableIndex
 			PropertyOwners = append(PropertyOwners, -1)
+			OwnablePropertyType = append(OwnablePropertyType, propertyType)
 		}
 
 		switch propertyType {
 		case TypeColor:
 			SpaceToRespProperty[spaceID] = colorIndex
+			OwnableToRespProperty[ownableIndex] = colorIndex
+			RespPropertyToOwnable[colorIndex] = ownableIndex
 			colorIndex++
 		case TypeRailroad:
 			SpaceToRespProperty[spaceID] = railroadIndex
+			OwnableToRespProperty[ownableIndex] = railroadIndex
+			RespPropertyToOwnable[railroadIndex] = ownableIndex
 			railroadIndex++
 		case TypeUtility:
 			SpaceToRespProperty[spaceID] = utilityIndex
+			OwnableToRespProperty[ownableIndex] = utilityIndex
+			RespPropertyToOwnable[utilityIndex] = ownableIndex
 			utilityIndex++
 		case TypeTax:
 			SpaceToTaxSpace[spaceID] = taxIndex
 			taxIndex++
 		}
+
+		ownableIndex++
 
 	}
 
@@ -253,12 +268,12 @@ var (
 
 func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
 	nextPos := (currentPosition + diceRoll)
-	if nextPos > BoardSpaces-1 { // Passed Go, but did not land on Go
+	if nextPos > int32(len(BoardSpaces))-1 { // Passed Go, but did not land on Go
 		GoVisitors = append(GoVisitors, playerID)
 	}
-	nextPos %= BoardSpaces
+	nextPos %= int32(len(BoardSpaces))
 
-	propType := BoardSpaceTypes[nextPos]
+	propType := BoardSpaces[nextPos]
 
 	switch propType {
 	case TypeGo:
