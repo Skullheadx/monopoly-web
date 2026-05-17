@@ -19,11 +19,3 @@ const (
 	TypeParking
 	TypePolice
 )
-
-type Color struct {
-	Name          string
-	Price         int32
-	Mortgaged     bool
-	Rent          [6]int32
-	MortgageValue int32
-}
