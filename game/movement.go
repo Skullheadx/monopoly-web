@@ -304,7 +304,6 @@ func AllowedToMove(playerID int32) bool {
 func ProcessMovement() {
 	for i, playerID := range MoveablePlayers {
 		if playerID == TurnPlayerID {
-
 			// Movement
 			for {
 				// condition to stop moving

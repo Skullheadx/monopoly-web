@@ -36,6 +36,16 @@ func ValidateCanEndTurn(UUID string) bool {
 	return true
 }
 
+func ValidateCanExitJail(UUID string) bool {
+	for _, iJV := range InJailVisitors {
+		player := Users[iJV.visitorID]
+		if Users[TurnPlayerID].UUID == UUID && player.UUID == UUID {
+			return true
+		}
+	}
+	return false
+}
+
 func ProcessLanding() {
 	ProcessGo()
 	ProcessTax()

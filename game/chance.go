@@ -70,7 +70,7 @@ func ProcessChance() {
 		case 6:
 			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, GoSpaceID))
 		case 7:
-		// TODO: GET OUT OF JAIL FREE
+			Users[visitorID].GetOutOfJailCards++
 		case 8:
 			MoveQueue = append(MoveQueue, GetPlayerMoveDistance(currentPos, BoardwalkSpaceID))
 		case 9:

@@ -1,9 +1,10 @@
 package game
 
 type User struct {
-	UUID           string
-	Money          int32
-	CurrentSpaceID int32
+	UUID              string
+	Money             int32
+	CurrentSpaceID    int32
+	GetOutOfJailCards int32
 }
 
 type PropertyType int
