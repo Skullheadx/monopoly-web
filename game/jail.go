@@ -4,39 +4,36 @@ import (
 	"errors"
 )
 
-const DEFAULT_JAIL_TURNS int32 = 3
-const JAIL_BUYOUT_COST int32 = 50
-
-func RemovePlayerFromJail(playerID int32) {
-	for i, iJV := range InJailVisitors {
+func (ctx *Context) RemovePlayerFromJail(playerID PlayerID) {
+	for i, iJV := range ctx.Visitors.InJail {
 		if playerID == iJV.visitorID {
-			InJailVisitors[i] = InJailVisitors[len(InJailVisitors)-1]
-			InJailVisitors = InJailVisitors[:len(InJailVisitors)-1]
+			ctx.Visitors.InJail[i] = ctx.Visitors.InJail[len(ctx.Visitors.InJail)-1]
+			ctx.Visitors.InJail = ctx.Visitors.InJail[:len(ctx.Visitors.InJail)-1]
 
 		}
 
 	}
-	MoveablePlayers = append(MoveablePlayers, playerID)
+	ctx.Players.Alive[playerID.Index()].CanMove = true
 }
 
-func RemovePlayerFromMoveable(pID int32) {
-	for i, playerID := range MoveablePlayers {
+func (ctx *Context) RemovePlayerFromMoveable(pID PlayerID) {
+	for i, _ := range ctx.Players.Alive {
+		playerID := PlayerID{id: int32(i)}
 		if pID == playerID {
-			MoveablePlayers[i] = MoveablePlayers[len(MoveablePlayers)-1]
-			MoveablePlayers = MoveablePlayers[:len(MoveablePlayers)-1]
+			ctx.Players.Alive[playerID.Index()].CanMove = false
 		}
 	}
 }
 
-func ProcessJail() {
-	for _, iJV := range InJailVisitors {
+func (ctx *Context) ProcessJail() {
+	for _, iJV := range ctx.Visitors.InJail {
 		visitorID := iJV.visitorID
-		turns := iJV.turns
+		turnsLeft := iJV.TurnsLeft
 
-		if turns <= 0 {
-			RemovePlayerFromJail(visitorID)
+		if turnsLeft <= 0 {
+			ctx.RemovePlayerFromJail(visitorID)
 		} else {
-			RemovePlayerFromMoveable(visitorID)
+			ctx.RemovePlayerFromMoveable(visitorID)
 		}
 
 	}
@@ -45,10 +42,11 @@ func ProcessJail() {
 var ErrNotEnoughJailCards = errors.New("Cannot use jail card: player does not have enough get out of jail free cards")
 var ErrNotEnoughMoney = errors.New("Cannot execute action: player does not have enough money")
 
-func JailUseCard() error {
-	if Users[TurnPlayerID].GetOutOfJailCards > 0 {
-		RemovePlayerFromJail(TurnPlayerID)
-		Users[TurnPlayerID].GetOutOfJailCards -= 1
+func (ctx *Context) JailUseCard() error {
+	currID := ctx.Turn.Current
+	if ctx.Players.Alive[currID.Index()].GetOutOfJailCards > 0 {
+		ctx.RemovePlayerFromJail(currID)
+		ctx.Players.Alive[currID.Index()].GetOutOfJailCards -= 1
 		return nil
 
 	} else {
@@ -56,10 +54,11 @@ func JailUseCard() error {
 	}
 }
 
-func JailBuyout() error {
-	if Users[TurnPlayerID].Money >= JAIL_BUYOUT_COST {
-		RemovePlayerFromJail(TurnPlayerID)
-		AdjustPlayerMoney(TurnPlayerID, -JAIL_BUYOUT_COST)
+func (ctx *Context) JailBuyout() error {
+	currID := ctx.Turn.Current
+	if ctx.Players.Alive[currID.Index()].Money >= JailBuyoutCost {
+		ctx.RemovePlayerFromJail(currID)
+		ctx.AdjustPlayerMoney(currID, -JailBuyoutCost)
 		return nil
 	} else {
 		return ErrNotEnoughMoney

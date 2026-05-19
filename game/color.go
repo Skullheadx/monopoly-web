@@ -1,20 +1,36 @@
 package game
 
-const MAX_PROP_HOUSES = 4
-
-func HasColorMonopoly(playerID int32, targetGroup ColorGroup) bool {
+func (ctx *Context) HasColorMonopoly(playerID PlayerID, targetGroup ColorGroup) bool {
 	var ownedCount int32
-	for propID, ownerID := range PropertyOwners {
-		if ownerID == playerID && OwnablePropertyType[int32(propID)] == TypeColor && ColorProperties[OwnableToRespProperty[int32(propID)]].GroupID == targetGroup {
-			ownedCount++
+	for _, prop := range ctx.Properties.Owners {
+		ownerID := prop.OwnerID
+
+		if ownerID != playerID {
+			continue
 		}
+
+		spaceID := prop.SpaceID
+		space := BoardSpaces[spaceID.Index()]
+
+		propType := space.PropertyType
+		if propType != TypeColor {
+			continue
+		}
+
+		colorID := space.SubIndexID
+		if ColorProperties[colorID].GroupID != targetGroup {
+			continue
+		}
+
+		// the property belongs to player, is a color property and has the right color
+		ownedCount++
 	}
 
 	return ownedCount == ColorGroupSizes[targetGroup]
 }
 
-func ProcessOwnedColors() {
-	for _, oCV := range OwnedColorVisitors {
+func (ctx *Context) ProcessOwnedColors() {
+	for _, oCV := range ctx.Visitors.Color {
 		visitorID := oCV.visitorID
 		ownerID := oCV.ownerID
 		colorID := oCV.colorID
@@ -24,11 +40,11 @@ func ProcessOwnedColors() {
 
 		var rent int32 = prices[prop.Houses]
 
-		if prop.Houses == 0 && HasColorMonopoly(ownerID, prop.GroupID) {
+		if prop.Houses == 0 && ctx.HasColorMonopoly(ownerID, prop.GroupID) {
 			rent *= 2
 		}
 
-		AdjustPlayerMoney(visitorID, -rent)
-		AdjustPlayerMoney(ownerID, rent)
+		ctx.AdjustPlayerMoney(visitorID, -rent)
+		ctx.AdjustPlayerMoney(ownerID, rent)
 	}
 }

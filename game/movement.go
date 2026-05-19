@@ -1,396 +1,94 @@
 package game
 
-var BoardSpaces = [...]PropertyType{
-	TypeGo,
-	TypeColor,
-	TypeChest,
-	TypeColor,
-	TypeTax,
-	TypeRailroad,
-	TypeColor,
-	TypeChance,
-	TypeColor,
-	TypeColor,
-	TypeJail,
-	TypeColor,
-	TypeUtility,
-	TypeColor,
-	TypeColor,
-	TypeRailroad,
-	TypeColor,
-	TypeChest,
-	TypeColor,
-	TypeColor,
-	TypeParking,
-	TypeColor,
-	TypeChance,
-	TypeColor,
-	TypeColor,
-	TypeRailroad,
-	TypeColor,
-	TypeColor,
-	TypeUtility,
-	TypeColor,
-	TypeJail,
-	TypeColor,
-	TypeColor,
-	TypeChest,
-	TypeColor,
-	TypeRailroad,
-	TypeChance,
-	TypeColor,
-	TypeTax,
-	TypeColor,
-}
-
-type PropertyStatic struct {
-	Name  string
-	Price int32
-}
-
-type ColorGroup int32
-
-const (
-	GroupBrown ColorGroup = iota
-	GroupLightBlue
-	GroupPink
-	GroupOrange
-	GroupRed
-	GroupYellow
-	GroupGreen
-	GroupDarkBlue
-)
-
-var ColorGroupSizes = [...]int32{
-	GroupBrown:     2,
-	GroupLightBlue: 3,
-	GroupPink:      3,
-	GroupOrange:    3,
-	GroupRed:       3,
-	GroupYellow:    3,
-	GroupGreen:     3,
-	GroupDarkBlue:  2,
-}
-
-type ColorProperty struct {
-	Name    string
-	Price   int32
-	GroupID ColorGroup
-	Houses  int32
-}
-
-var ColorProperties = []ColorProperty{
-	{GroupID: GroupBrown, Houses: 0, Name: "Mediterranean Avenue", Price: 60},
-	{GroupID: GroupBrown, Houses: 0, Name: "Baltic Avenue", Price: 60},
-	{GroupID: GroupLightBlue, Houses: 0, Name: "Oriental Avenue", Price: 100},
-	{GroupID: GroupLightBlue, Houses: 0, Name: "Vermont Avenue", Price: 100},
-	{GroupID: GroupLightBlue, Houses: 0, Name: "Connecticut Avenue", Price: 120},
-	{GroupID: GroupPink, Houses: 0, Name: "St. Charles Place", Price: 140},
-	{GroupID: GroupPink, Houses: 0, Name: "States Avenue", Price: 140},
-	{GroupID: GroupPink, Houses: 0, Name: "Virginia Avenue", Price: 160},
-	{GroupID: GroupOrange, Houses: 0, Name: "St. James Place", Price: 180},
-	{GroupID: GroupOrange, Houses: 0, Name: "Tennessee Avenue", Price: 180},
-	{GroupID: GroupOrange, Houses: 0, Name: "New York Avenue", Price: 200},
-	{GroupID: GroupRed, Houses: 0, Name: "Kentucky Avenue", Price: 220},
-	{GroupID: GroupRed, Houses: 0, Name: "Indiana Avenue", Price: 220},
-	{GroupID: GroupRed, Houses: 0, Name: "Illinois Avenue", Price: 240},
-	{GroupID: GroupYellow, Houses: 0, Name: "Atlantic Avenue", Price: 260},
-	{GroupID: GroupYellow, Houses: 0, Name: "Ventnor Avenue", Price: 260},
-	{GroupID: GroupYellow, Houses: 0, Name: "Marvin Gardens", Price: 280},
-	{GroupID: GroupGreen, Houses: 0, Name: "Pacific Avenue", Price: 300},
-	{GroupID: GroupGreen, Houses: 0, Name: "North Carolina Avenue", Price: 300},
-	{GroupID: GroupGreen, Houses: 0, Name: "Pennsylvania Avenue", Price: 320},
-	{GroupID: GroupDarkBlue, Houses: 0, Name: "Park Place", Price: 350},
-	{GroupID: GroupDarkBlue, Houses: 0, Name: "Boardwalk", Price: 400},
-}
-
-var ColorPropertyRents = [][]int32{
-	{2, 10, 30, 90, 160, 250},
-	{4, 20, 60, 180, 320, 450},
-	{6, 30, 90, 270, 400, 550},
-	{6, 30, 90, 270, 400, 550},
-	{8, 40, 100, 300, 450, 600},
-	{10, 50, 150, 450, 625, 750},
-	{10, 50, 150, 450, 625, 750},
-	{12, 60, 180, 500, 700, 900},
-	{14, 70, 200, 550, 750, 950},
-	{14, 70, 200, 550, 750, 950},
-	{16, 80, 220, 600, 800, 1000},
-	{18, 90, 250, 700, 875, 1050},
-	{18, 90, 250, 700, 875, 1050},
-	{20, 100, 300, 750, 925, 1100},
-	{22, 110, 330, 800, 975, 1150},
-	{22, 110, 330, 800, 975, 1150},
-	{24, 120, 360, 850, 1025, 1200},
-	{26, 130, 390, 900, 1100, 1275},
-	{26, 130, 390, 900, 1100, 1275},
-	{28, 150, 450, 1000, 1200, 1400},
-	{35, 175, 500, 1100, 1300, 1500},
-	{50, 200, 600, 1400, 1700, 2000},
-}
-
-var RailroadProperties = []PropertyStatic{
-	{Name: "Reading Railroad", Price: 200},
-	{Name: "Pennsylvania Railroad", Price: 200},
-	{Name: "B.&O. Railroad", Price: 200},
-	{Name: "Short Line", Price: 200},
-}
-
-const RailroadPrice int32 = 200
-
-var RailroadRent = [...]int32{25, 50, 100, 200}
-
-const RailroadMortgageValue int32 = 100
-
-var UtilityProperties = []PropertyStatic{
-	{Name: "Electric Company", Price: 150},
-	{Name: "Waterworks", Price: 150},
-}
-
-const UtilityPrice int32 = 150
-
-var UtilityRentMult = [...]int32{4, 10}
-
-const UtilityMortgageValue int32 = 75
-
-type TaxSpace struct {
-	Name   string
-	Amount int32
-}
-
-var TaxSpaces = []TaxSpace{
-	{Name: "Income Tax", Amount: 200},
-	{Name: "Luxury Tax", Amount: 100},
-}
-
-var PropertyOwners = []int32{}             // playerID
-var OwnablePropertyType = []PropertyType{} // uses ownablePropertyID
-var PropertyMortgages = []int32{}          // mortgaged ownablePropertyIDs
-
-func IsMortgaged(ownablePropertyID int32) bool {
-	for _, oPID := range PropertyMortgages {
-		if oPID == ownablePropertyID {
-			return true
-		}
+func GetPlayerMoveDistance(start SpaceID, dest SpaceID) int32 {
+	distance := dest.id - start.id
+	if distance < 0 {
+		distance += int32(len(BoardSpaces))
 	}
-	return false
+	return distance
 }
 
-var SpaceToRespProperty = make(map[int32]int32)
-var SpaceToOwnableProperty = make(map[int32]int32)
-var SpaceToTaxSpace = make(map[int32]int32)
+func (ctx *Context) AllowedToMove(playerID PlayerID) bool {
+	return ctx.Players.Alive[playerID.Index()].CanMove
+}
 
-var OwnableToRespProperty = make(map[int32]int32)
-var RespPropertyToOwnable = make(map[int32]int32)
+func (ctx *Context) ProcessMovement() {
+	cID := ctx.Turn.Current
+	if ctx.AllowedToMove(cID) {
+		dist := ctx.Turn.MoveQueue[0]
+		ctx.Turn.MoveQueue = ctx.Turn.MoveQueue[1:]
+		ctx.AdvancePlayer(cID, ctx.Players.Alive[cID.Index()].CurrentSpaceID, dist)
 
-var StCharlesPlaceSpaceID int32 = 0
-var GoSpaceID int32 = 0
-var ReadingRailroadSpaceID int32 = 0
-var BoardwalkSpaceID int32 = 0
-var IllinoisAvenueSpaceID int32 = 0
-
-func init() {
-	var (
-		colorIndex    int32 = 0
-		railroadIndex int32 = 0
-		utilityIndex  int32 = 0
-		taxIndex      int32 = 0
-		ownableIndex  int32 = 0
-	)
-
-	for i, propertyType := range BoardSpaces {
-		spaceID := int32(i)
-
-		if propertyType == TypeColor || propertyType == TypeRailroad || propertyType == TypeUtility {
-			SpaceToOwnableProperty[spaceID] = ownableIndex
-			PropertyOwners = append(PropertyOwners, -1)
-			OwnablePropertyType = append(OwnablePropertyType, propertyType)
-		}
-
-		switch propertyType {
-		case TypeColor:
-			SpaceToRespProperty[spaceID] = colorIndex
-			OwnableToRespProperty[ownableIndex] = colorIndex
-			RespPropertyToOwnable[colorIndex] = ownableIndex
-
-			switch ColorProperties[colorIndex].Name {
-			case "St. Charles Place":
-				StCharlesPlaceSpaceID = spaceID
-			case "Boardwalk":
-				BoardwalkSpaceID = spaceID
-			case "Illinois Avenue":
-				IllinoisAvenueSpaceID = spaceID
-			}
-
-			colorIndex++
-		case TypeRailroad:
-			SpaceToRespProperty[spaceID] = railroadIndex
-			OwnableToRespProperty[ownableIndex] = railroadIndex
-			RespPropertyToOwnable[railroadIndex] = ownableIndex
-			if ColorProperties[colorIndex].Name == "Reading Railroad" {
-				ReadingRailroadSpaceID = spaceID
-			}
-			railroadIndex++
-		case TypeUtility:
-			SpaceToRespProperty[spaceID] = utilityIndex
-			OwnableToRespProperty[ownableIndex] = utilityIndex
-			RespPropertyToOwnable[utilityIndex] = ownableIndex
-			utilityIndex++
-		case TypeTax:
-			SpaceToTaxSpace[spaceID] = taxIndex
-			taxIndex++
-		case TypeGo:
-			GoSpaceID = spaceID
-		}
-
-		ownableIndex++
-
+		ctx.ProcessLanding()
 	}
 
 }
 
-type OwnedColorVisitor struct {
-	visitorID int32
-	ownerID   int32
-	colorID   int32
-}
-
-type OwnedRailroadVisitor struct {
-	visitorID  int32
-	ownerID    int32
-	railroadID int32
-}
-
-type OwnedUtilityVisitor struct {
-	visitorID int32
-	ownerID   int32
-	utilityID int32
-	diceRoll  int32
-}
-
-type UnownedPropertyVisitor struct {
-	visitorID  int32
-	propertyID int32
-}
-
-type InJailVisitor struct {
-	visitorID int32
-	turns     int32
-}
-
-var (
-	UnownedPropertyVisitors []UnownedPropertyVisitor
-	OwnedColorVisitors      []OwnedColorVisitor
-	OwnedRailroadVisitors   []OwnedRailroadVisitor
-	OwnedUtilityVisitors    []OwnedUtilityVisitor
-	GoVisitors              []int32
-	TaxVisitors             []int32
-	ChanceVisitors          []int32
-	ChestVisitors           []int32
-	InJailVisitors          []InJailVisitor
-	ParkingVisitors         []int32
-	PoliceVisitors          []int32
-)
-
-func AllowedToMove(playerID int32) bool {
-	for _, pID := range MoveablePlayers {
-		if playerID == pID {
-			return true
-		}
-	}
-	return false
-}
-
-func ProcessMovement() {
-	for i, playerID := range MoveablePlayers {
-		if playerID == TurnPlayerID {
-			// Movement
-			for {
-				// condition to stop moving
-				if len(MoveQueue) == 0 {
-					// player can no longer move
-					MoveablePlayers[i] = MoveablePlayers[len(MoveablePlayers)-1]
-					MoveablePlayers = MoveablePlayers[:len(MoveablePlayers)-1]
-					break
-				}
-
-				dist := MoveQueue[0]
-				MoveQueue = MoveQueue[1:]
-				player := Users[playerID]
-				AdvancePlayer(playerID, player.CurrentSpaceID, dist)
-
-				ProcessLanding()
-			}
-
-		}
-
-	}
-
-}
-
-func CalculateNextPos(currentPosition int32, distance int32) int32 {
-	nextPos := (currentPosition + distance)
-	nextPos %= int32(len(BoardSpaces))
+func CalculateNextPos(currentPosition SpaceID, distance int32) SpaceID {
+	nextPos := Add(currentPosition, distance)
+	nextPos.id %= int32(len(BoardSpaces))
 
 	return nextPos
 }
 
-func AdvancePlayer(playerID int32, currentPosition int32, diceRoll int32) {
+func (ctx *Context) AdvancePlayer(playerID PlayerID, currentPosition SpaceID, diceRoll int32) {
 	nextPos := CalculateNextPos(currentPosition, diceRoll)
 
-	numGoPasses := (currentPosition + diceRoll) / (int32(len(BoardSpaces)) - 1)
+	numGoPasses := Add(currentPosition, diceRoll).id / int32(len(BoardSpaces))
+
 	if numGoPasses > 0 {
+		if BoardSpaces[nextPos.Index()].PropertyType == TypeGo {
+			numGoPasses--
+		}
 		for range numGoPasses {
-			GoVisitors = append(GoVisitors, playerID)
+			ctx.Visitors.Go = append(ctx.Visitors.Go, playerID)
 		}
 	}
 
-	propType := BoardSpaces[nextPos]
+	prop := BoardSpaces[nextPos.Index()]
 
-	switch propType {
+	switch prop.PropertyType {
 	case TypeGo:
-		GoVisitors = append(GoVisitors, playerID)
+		ctx.Visitors.Go = append(ctx.Visitors.Go, playerID)
 	case TypeChest:
-		ChestVisitors = append(ChestVisitors, playerID)
+		ctx.Visitors.Chest = append(ctx.Visitors.Chest, playerID)
 	case TypeChance:
-		ChanceVisitors = append(ChanceVisitors, playerID)
+		ctx.Visitors.Chance = append(ctx.Visitors.Chance, playerID)
 	case TypeTax:
-		TaxVisitors = append(TaxVisitors, playerID)
-	// case TypeParking: // nothing ever happens
-	// 	ParkingVisitors = append(ParkingVisitors, playerID)
+		ctx.Visitors.Tax = append(ctx.Visitors.Tax, TaxVisitor{visitorID: playerID, taxID: prop.SubIndexID})
 	case TypePolice: // hardcoding to send straight to jail
-		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: playerID, turns: DEFAULT_JAIL_TURNS})
+		ctx.Visitors.InJail = append(ctx.Visitors.InJail, InJailVisitor{visitorID: playerID, TurnsLeft: JailDefaultTurns})
 	case TypeJail:
-		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: playerID, turns: DEFAULT_JAIL_TURNS})
+		ctx.Visitors.InJail = append(ctx.Visitors.InJail, InJailVisitor{visitorID: playerID, TurnsLeft: JailDefaultTurns})
 	case TypeColor:
-		propIndex := SpaceToOwnableProperty[nextPos]
-		if PropertyOwners[propIndex] != -1 { // property owned?
-			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
-				OwnedColorVisitors = append(OwnedColorVisitors, OwnedColorVisitor{visitorID: playerID, ownerID: ownerID, colorID: SpaceToRespProperty[nextPos]})
+		propID := ctx.getPropID(nextPos)
+		ownerID := ctx.Properties.Owners[propID.Index()].OwnerID
+		if ownerID != BankPlayerID { // property owned?
+			if ownerID != playerID && !ctx.IsMortgaged(propID) { // not by you
+				ctx.Visitors.Color = append(ctx.Visitors.Color, OwnedColorVisitor{visitorID: playerID, ownerID: ownerID, colorID: prop.SubIndexID})
 			}
 		} else {
-			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+			ctx.Visitors.Unowned = append(ctx.Visitors.Unowned, UnownedPropertyVisitor{visitorID: playerID, propertyID: propID})
 		}
 	case TypeRailroad:
-		propIndex := SpaceToOwnableProperty[nextPos]
-		if PropertyOwners[propIndex] != -1 { // property owned?
-			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
-				OwnedRailroadVisitors = append(OwnedRailroadVisitors, OwnedRailroadVisitor{visitorID: playerID, ownerID: ownerID, railroadID: SpaceToRespProperty[nextPos]})
+		propID := ctx.getPropID(nextPos)
+		ownerID := ctx.Properties.Owners[propID.Index()].OwnerID
+		if ownerID != BankPlayerID { // property owned?
+			if ownerID != playerID && !ctx.IsMortgaged(propID) { // not by you
+				ctx.Visitors.Railroad = append(ctx.Visitors.Railroad, OwnedRailroadVisitor{visitorID: playerID, ownerID: ownerID, railroadID: prop.SubIndexID})
 			}
 		} else {
-			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+			ctx.Visitors.Unowned = append(ctx.Visitors.Unowned, UnownedPropertyVisitor{visitorID: playerID, propertyID: propID})
 		}
 	case TypeUtility:
-		propIndex := SpaceToOwnableProperty[nextPos]
-		if PropertyOwners[propIndex] != -1 { // property owned?
-			ownerID := PropertyOwners[propIndex]
-			if ownerID != playerID && !IsMortgaged(propIndex) { // not by you
-				OwnedUtilityVisitors = append(OwnedUtilityVisitors, OwnedUtilityVisitor{visitorID: playerID, ownerID: ownerID, utilityID: SpaceToRespProperty[nextPos], diceRoll: diceRoll})
+		propID := ctx.getPropID(nextPos)
+		ownerID := ctx.Properties.Owners[propID.Index()].OwnerID
+		if ownerID != BankPlayerID { // property owned?
+			if ownerID != playerID && !ctx.IsMortgaged(propID) { // not by you
+				ctx.Visitors.Utility = append(ctx.Visitors.Utility, OwnedUtilityVisitor{visitorID: playerID, ownerID: ownerID, utilityID: prop.SubIndexID, diceRoll: diceRoll})
 			}
 		} else {
-			UnownedPropertyVisitors = append(UnownedPropertyVisitors, UnownedPropertyVisitor{visitorID: playerID, propertyID: propIndex})
+			ctx.Visitors.Unowned = append(ctx.Visitors.Unowned, UnownedPropertyVisitor{visitorID: playerID, propertyID: propID})
 		}
 	}
 }

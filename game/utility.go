@@ -1,18 +1,31 @@
 package game
 
-func numUtilities(playerID int32) int32 {
+func (ctx *Context) NumUtilities(playerID PlayerID) int32 {
 	var ownedCount int32 = 0
-	for propID, ownerID := range PropertyOwners {
-		if ownerID == playerID && OwnablePropertyType[int32(propID)] == TypeUtility {
-			ownedCount++
+	for _, prop := range ctx.Properties.Owners {
+		ownerID := prop.OwnerID
+
+		if ownerID != playerID {
+			continue
 		}
+
+		spaceID := prop.SpaceID
+		space := BoardSpaces[spaceID.Index()]
+
+		propType := space.PropertyType
+		if propType != TypeUtility {
+			continue
+		}
+
+		ownedCount++
+
 	}
 
 	return ownedCount
 }
 
-func ProcessOwnedUtility() {
-	for _, oUV := range OwnedUtilityVisitors {
+func (ctx *Context) ProcessOwnedUtility() {
+	for _, oUV := range ctx.Visitors.Utility {
 		visitorID := oUV.visitorID
 		ownerID := oUV.ownerID
 		// utilityID := oUV.utilityID
@@ -20,15 +33,15 @@ func ProcessOwnedUtility() {
 
 		var rent int32 = 0
 
-		if !ModifierUtilityForceRentMultiplier {
-			rent = UtilityRentMult[numUtilities(ownerID)] * diceRoll
+		if !ctx.Turn.Modifier.UtilityForceRentMultiplier {
+			rent = UtilityRentMult[ctx.NumUtilities(ownerID)] * diceRoll
 		} else {
 			rent = 10 * diceRoll
 		}
 
-		AdjustPlayerMoney(visitorID, -rent)
-		AdjustPlayerMoney(ownerID, rent)
+		ctx.AdjustPlayerMoney(visitorID, -rent)
+		ctx.AdjustPlayerMoney(ownerID, rent)
 
-		ModifierUtilityForceRentMultiplier = false
+		ctx.Turn.Modifier.UtilityForceRentMultiplier = false
 	}
 }

@@ -1,0 +1,15 @@
+- TODO Trading
+        - validate no race condition
+        - prevent trading properties with buildings
+        - trade money
+        - negotiate / accept / decline / delete
+
+- TODO auction
+        - own auction
+        - bank liquidation auction
+
+- TODO Bankruptcy 
+
+- TODO user auth
+
+- TODO Server Side Events (SSE) for updating game on client

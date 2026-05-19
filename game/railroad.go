@@ -1,27 +1,41 @@
 package game
 
-func numRailroadOwned(playerID int32) int32 {
+func (ctx *Context) numRailroadOwned(playerID PlayerID) int32 {
 	var ownedCount int32 = 0
-	for propID, ownerID := range PropertyOwners {
-		if ownerID == playerID && OwnablePropertyType[int32(propID)] == TypeRailroad {
-			ownedCount++
+	for _, prop := range ctx.Properties.Owners {
+		ownerID := prop.OwnerID
+
+		if ownerID != playerID {
+			continue
 		}
+
+		spaceID := prop.SpaceID
+		space := BoardSpaces[spaceID.Index()]
+
+		propType := space.PropertyType
+		if propType != TypeRailroad {
+			continue
+		}
+
+		ownedCount++
+
 	}
 
 	return ownedCount
 }
 
-func ProcessOwnedRailroad() {
-	for _, oRV := range OwnedRailroadVisitors {
+func (ctx *Context) ProcessOwnedRailroad() {
+	for _, oRV := range ctx.Visitors.Railroad {
 		visitorID := oRV.visitorID
 		ownerID := oRV.ownerID
 		// railroadID := oRV.railroadID
 
-		var rent int32 = RailroadRent[numRailroadOwned(ownerID)]
+		var rent int32 = RailroadRent[ctx.numRailroadOwned(ownerID)]
 
-		AdjustPlayerMoney(visitorID, -rent)
-		AdjustPlayerMoney(ownerID, rent)
+		ctx.AdjustPlayerMoney(visitorID, -rent)
+		ctx.AdjustPlayerMoney(ownerID, rent)
+
 		// reset railroad rent mod after payment
-		ModifierRailroadRentMultiplier = 1
+		ctx.Turn.Modifier.RailroadRentMultiplier = 1
 	}
 }

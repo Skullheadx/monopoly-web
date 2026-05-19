@@ -4,92 +4,175 @@ import (
 	"math/rand/v2"
 )
 
-var RandSeed = rand.NewPCG(20, 26)
-var RandSrc = rand.New(RandSeed)
+func initTurn(pID PlayerID) Turn {
+	return Turn{
+		Current:            pID,
+		Ended:              false,
+		DiceRollsRemaining: StartingDiceRolls,
+		NumDiceRolled:      0,
+		RolledDoubles:      false,
+		MoveQueue:          []int32{},
+		InDebt:             false,
+		Modifier: Modifiers{
+			RailroadRentMultiplier:     1,
+			UtilityForceRentMultiplier: false,
+		},
+	}
+}
 
-var Users []User
-var DebtEvents []int32
-var MoveablePlayers []int32
-var MoveQueue []int32
+func InitCtx(randSeed rand.Source, players []Player) *Context {
+	startingPlayerID := PlayerID{id: 0}
+	ownableProps := []OwnableProperty{}
+	for i, s := range BoardSpaces {
+		spaceID := SpaceID{id: int32(i)}
 
-var ModifierRailroadRentMultiplier int32 = 1
-var ModifierUtilityForceRentMultiplier bool = false
-
-var TurnPlayerID int32 = 0
-var TurnEndedSignal bool = false
-var DiceRollsRemaining int32 = 1
-var numDiceRolled int32 = 0
-var RolledDoubles bool = false
-
-func ValidateCanRoll(UUID string) bool {
-	if Users[TurnPlayerID].UUID == UUID && DiceRollsRemaining > 0 {
-		return true
+		propertyType := s.PropertyType
+		if propertyType == TypeColor || propertyType == TypeRailroad || propertyType == TypeUtility {
+			ownableProps = append(ownableProps, OwnableProperty{
+				OwnerID: BankPlayerID,
+				SpaceID: spaceID,
+			})
+		}
 	}
 
+	return &Context{
+		Random: rand.New(randSeed),
+		Players: Players{
+			Alive: players,
+		},
+		Turn: initTurn(startingPlayerID),
+		Visitors: Visitors{
+			Unowned:  []UnownedPropertyVisitor{},
+			Color:    []OwnedColorVisitor{},
+			Railroad: []OwnedRailroadVisitor{},
+			Utility:  []OwnedUtilityVisitor{},
+			Go:       []PlayerID{},
+			Tax:      []TaxVisitor{},
+			Chance:   []PlayerID{},
+			Chest:    []PlayerID{},
+			InJail:   []InJailVisitor{},
+			// Parking:  []PlayerID{},
+			// Police:   []PlayerID{},
+		},
+		Properties: Properties{
+			Owners:    ownableProps,
+			Mortgages: []PropertyID{},
+		},
+	}
+}
+
+func InitPlayer() Player {
+	return Player{
+		UUID:              "abc", // TODO: Generate proper UUID
+		Money:             StartingMoney,
+		CurrentSpaceID:    SpecialSpaces.Go,
+		GetOutOfJailCards: StartingGetOutOfJailFreeCards,
+		CanMove:           true,
+	}
+}
+
+func (ctx *Context) GetCurrentTurnPlayer() *Player {
+	return &ctx.Players.Alive[ctx.Turn.Current.Index()]
+}
+
+func (ctx *Context) ValidateIsTurn(UUID string) bool {
+	if ctx.GetCurrentTurnPlayer().UUID == UUID {
+		return true
+	}
 	return false
 }
 
-func ValidateCanEndTurn(UUID string) bool {
-	if Users[TurnPlayerID].UUID != UUID || DiceRollsRemaining > 0 || Users[TurnPlayerID].Money < 0 {
-		return false
+func (ctx *Context) ValidateCanRoll(UUID string) bool {
+	if ctx.ValidateIsTurn(UUID) && ctx.Turn.DiceRollsRemaining > 0 {
+		return true
 	}
-	return true
+	return false
 }
 
-func ValidateCanExitJail(UUID string) bool {
-	for _, iJV := range InJailVisitors {
-		player := Users[iJV.visitorID]
-		if Users[TurnPlayerID].UUID == UUID && player.UUID == UUID {
+func (ctx *Context) ValidateCanEndTurn(UUID string) bool {
+	if !(ctx.ValidateIsTurn(UUID) || ctx.Turn.DiceRollsRemaining > 0 || ctx.GetCurrentTurnPlayer().Money < 0) {
+		return true
+	}
+	return false
+}
+
+func (ctx *Context) ValidateCanExitJail(UUID string) bool {
+	for _, iJV := range ctx.Visitors.InJail {
+		if ctx.Players.Alive[iJV.visitorID.Index()].UUID == UUID {
 			return true
 		}
 	}
 	return false
 }
 
-func ProcessLanding() {
-	ProcessGo()
-	ProcessTax()
+func (ctx *Context) ProcessLanding() {
+	ctx.ProcessGo()
+	ctx.ProcessTax()
 
-	ProcessOwnedColors()
-	ProcessOwnedUtility()
-	ProcessOwnedRailroad()
+	ctx.ProcessOwnedColors()
+	ctx.ProcessOwnedUtility()
+	ctx.ProcessOwnedRailroad()
+	ctx.ProcessUnowned()
 
-	ProcessChance()
-	ProcessChest()
+	ctx.ProcessChance()
+	ctx.ProcessChest()
 	// ProcessPolice()
 
-	ProcessJail()
+	ctx.ProcessJail()
 }
 
-func RollDice() {
+func (ctx *Context) RollDice() {
 	// Roll Dice
-	diceRoll1 := RandSrc.Int32N(6) + 1
-	diceRoll2 := RandSrc.Int32N(6) + 1
+	diceRoll1 := ctx.Random.Int32N(6) + 1
+	diceRoll2 := ctx.Random.Int32N(6) + 1
 
-	numDiceRolled++
+	ctx.Turn.NumDiceRolled++
+	ctx.Turn.DiceRollsRemaining--
 
 	if diceRoll1 == diceRoll2 {
-		RolledDoubles = true
-		DiceRollsRemaining++
-		RemovePlayerFromJail(TurnPlayerID)
+		ctx.Turn.RolledDoubles = true
+		ctx.Turn.DiceRollsRemaining++
+		ctx.RemovePlayerFromJail(ctx.Turn.Current)
 	}
 
-	if numDiceRolled >= 3 {
-		InJailVisitors = append(InJailVisitors, InJailVisitor{visitorID: TurnPlayerID, turns: DEFAULT_JAIL_TURNS})
+	if ctx.Turn.NumDiceRolled >= 3 {
+		ctx.Visitors.InJail = append(ctx.Visitors.InJail, InJailVisitor{visitorID: ctx.Turn.Current, TurnsLeft: JailDefaultTurns})
 	}
 
 }
 
-func EndTurn() {
-	// next player's turn
-	TurnPlayerID = (TurnPlayerID + 1) % int32(len(Users))
-	TurnEndedSignal = false
+func (ctx *Context) EndTurn() {
+	nextTurnPlayerID := PlayerID{id: (ctx.Turn.Current.id + 1) % int32(len(ctx.Players.Alive))}
+	ctx.Turn = initTurn(nextTurnPlayerID)
+}
 
-	// reset dice
-	DiceRollsRemaining = 1
-	numDiceRolled = 0
-	RolledDoubles = false
+func (ctx *Context) IsMortgaged(propID PropertyID) bool {
+	for _, oPID := range ctx.Properties.Mortgages {
+		if oPID == propID {
+			return true
+		}
+	}
+	return false
+}
 
-	// let player move next turn
-	MoveQueue = MoveQueue[:0]
+func (ctx *Context) IsOwned(spaceID SpaceID) bool {
+	for _, prop := range ctx.Properties.Owners {
+		if spaceID == prop.SpaceID {
+			if prop.OwnerID == BankPlayerID {
+				return false
+			} else {
+				return true
+			}
+		}
+	}
+	panic("Space is not an ownable property")
+}
+
+func (ctx *Context) getPropID(spaceID SpaceID) PropertyID {
+	for i, prop := range ctx.Properties.Owners {
+		if spaceID == prop.SpaceID {
+			return PropertyID{id: int32(i)}
+		}
+	}
+	panic("Space is not an ownable property")
 }

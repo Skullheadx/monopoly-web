@@ -4,21 +4,36 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand/v2"
 	"monopoly-web/game"
 	"net/http"
 )
 
+type Room struct {
+	gameCtx *game.Context
+}
+
+func initRoom() Room {
+	randSeed := rand.NewPCG(20, 26)
+	players := []game.Player{
+		game.InitPlayer(),
+	}
+
+	return Room{
+		gameCtx: game.InitCtx(randSeed, players),
+	}
+}
+
 func main() {
 	fmt.Println("monopoly-web backend")
 
-	game.Users = append(game.Users, game.User{UUID: "abc", Money: 100, CurrentSpaceID: 0, GetOutOfJailCards: 0})
-	fmt.Println(game.Users)
+	room := initRoom()
 
 	// register routes
 	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/api/v1/roll", rollDiceHandler)
-	http.HandleFunc("POST /api/v1/turn", endTurnHandler)
-	http.HandleFunc("POST /api/v1/exit-jail", exitJailHandler)
+	http.HandleFunc("/api/v1/roll", room.rollDiceHandler)
+	http.HandleFunc("POST /api/v1/turn", room.endTurnHandler)
+	http.HandleFunc("POST /api/v1/exit-jail", room.exitJailHandler)
 
 	// listen and serve
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -30,27 +45,27 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 
 const UUID = "abc" // TODO: UUID in cookie
 
-func rollDiceHandler(w http.ResponseWriter, req *http.Request) {
-	if game.ValidateCanRoll(UUID) {
-		game.RollDice()
-		game.ProcessMovement()
+func (r *Room) rollDiceHandler(w http.ResponseWriter, req *http.Request) {
+	if r.gameCtx.ValidateCanRoll(UUID) {
+		r.gameCtx.RollDice()
+		r.gameCtx.ProcessMovement()
 	}
 }
 
-func endTurnHandler(w http.ResponseWriter, req *http.Request) {
-	if game.ValidateCanEndTurn(UUID) {
-		game.EndTurn()
+func (r *Room) endTurnHandler(w http.ResponseWriter, req *http.Request) {
+	if r.gameCtx.ValidateCanEndTurn(UUID) {
+		r.gameCtx.EndTurn()
 	}
 }
 
-func exitJailHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Room) exitJailHandler(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		http.Error(w, "Bad Request: Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
-	if !game.ValidateCanExitJail(UUID) {
+	if !r.gameCtx.ValidateCanExitJail(UUID) {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(`{"status": "forbidden", "message": "Not your turn or not in jail"}`))
 	}
@@ -59,13 +74,13 @@ func exitJailHandler(w http.ResponseWriter, req *http.Request) {
 
 	switch method {
 	case "buyout":
-		err = game.JailBuyout()
+		err = r.gameCtx.JailBuyout()
 		if err == game.ErrNotEnoughMoney {
 			http.Error(w, "error: Insufficient funds", http.StatusUnprocessableEntity)
 		}
 
 	case "jail_free_card":
-		err = game.JailUseCard()
+		err = r.gameCtx.JailUseCard()
 		if err == game.ErrNotEnoughJailCards {
 			http.Error(w, "error: Insufficient jail cards", http.StatusUnprocessableEntity)
 		}
