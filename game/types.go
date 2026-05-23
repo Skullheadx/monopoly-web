@@ -9,7 +9,6 @@ type Player struct {
 	Money             int32
 	CurrentSpaceID    SpaceID
 	GetOutOfJailCards int32
-	CanMove           bool
 }
 
 type PropertyType int
@@ -135,7 +134,8 @@ type Modifiers struct {
 }
 
 type Players struct {
-	Alive []Player // PlayerID is PK
+	Alive   []Player // PlayerID is PK
+	CanMove []PlayerID
 }
 
 type Turn struct {

@@ -9,18 +9,20 @@ func (ctx *Context) RemovePlayerFromJail(playerID PlayerID) {
 		if playerID == iJV.visitorID {
 			ctx.Visitors.InJail[i] = ctx.Visitors.InJail[len(ctx.Visitors.InJail)-1]
 			ctx.Visitors.InJail = ctx.Visitors.InJail[:len(ctx.Visitors.InJail)-1]
-
 		}
 
 	}
-	ctx.Players.Alive[playerID.Index()].CanMove = true
+
+	if !ctx.PlayerCanMove(playerID) {
+		ctx.Players.CanMove = append(ctx.Players.CanMove, playerID)
+	}
 }
 
 func (ctx *Context) RemovePlayerFromMoveable(pID PlayerID) {
-	for i, _ := range ctx.Players.Alive {
-		playerID := PlayerID{id: int32(i)}
-		if pID == playerID {
-			ctx.Players.Alive[playerID.Index()].CanMove = false
+	for i, cM := range ctx.Players.CanMove {
+		if pID == cM {
+			ctx.Players.CanMove[i] = ctx.Players.CanMove[len(ctx.Players.CanMove)-1]
+			ctx.Players.CanMove = ctx.Players.CanMove[:len(ctx.Players.CanMove)-1]
 		}
 	}
 }

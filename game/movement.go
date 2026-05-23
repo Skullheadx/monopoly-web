@@ -8,13 +8,9 @@ func GetPlayerMoveDistance(start SpaceID, dest SpaceID) int32 {
 	return distance
 }
 
-func (ctx *Context) AllowedToMove(playerID PlayerID) bool {
-	return ctx.Players.Alive[playerID.Index()].CanMove
-}
-
 func (ctx *Context) ProcessMovement() {
 	cID := ctx.Turn.Current
-	if ctx.AllowedToMove(cID) {
+	if ctx.PlayerCanMove(cID) {
 		dist := ctx.Turn.MoveQueue[0]
 		ctx.Turn.MoveQueue = ctx.Turn.MoveQueue[1:]
 		ctx.AdvancePlayer(cID, ctx.Players.Alive[cID.Index()].CurrentSpaceID, dist)

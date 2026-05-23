@@ -22,6 +22,12 @@ func initTurn(pID PlayerID) Turn {
 
 func InitCtx(randSeed rand.Source, players []Player) *Context {
 	startingPlayerID := PlayerID{id: 0}
+
+	playerIDs := []PlayerID{}
+	for i := range players {
+		playerIDs = append(playerIDs, PlayerID{id: int32(i)})
+	}
+
 	ownableProps := []OwnableProperty{}
 	for i, s := range BoardSpaces {
 		spaceID := SpaceID{id: int32(i)}
@@ -38,7 +44,8 @@ func InitCtx(randSeed rand.Source, players []Player) *Context {
 	return &Context{
 		Random: rand.New(randSeed),
 		Players: Players{
-			Alive: players,
+			Alive:   players,
+			CanMove: playerIDs,
 		},
 		Turn: initTurn(startingPlayerID),
 		Visitors: Visitors{
@@ -67,8 +74,16 @@ func InitPlayer() Player {
 		Money:             StartingMoney,
 		CurrentSpaceID:    SpecialSpaces.Go,
 		GetOutOfJailCards: StartingGetOutOfJailFreeCards,
-		CanMove:           true,
 	}
+}
+
+func (ctx *Context) PlayerCanMove(pID PlayerID) bool {
+	for i, _ := range ctx.Players.CanMove {
+		if i == pID.Index() {
+			return true
+		}
+	}
+	return false
 }
 
 func (ctx *Context) GetCurrentTurnPlayer() *Player {
